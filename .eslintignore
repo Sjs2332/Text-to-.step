@@ -1,0 +1,5 @@
+public/pdf.worker.min.mjs
+public/assets/
+.next/
+dist/
+node_modules/

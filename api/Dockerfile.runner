@@ -1,0 +1,41 @@
+# Geometry Execution Sandbox
+#
+# Minimal container for secure execution of FreeCAD Python scripts.
+# Designed with defense-in-depth: network isolation, resource limits,
+# read-only filesystem, and non-root execution.
+#
+# This container is ephemeral - scripts execute and container is destroyed.
+# No persistent state, no network access, no write access except /tmp.
+
+FROM python:3.11-slim-bookworm
+
+# Install FreeCAD Python bindings (headless, no GUI dependencies)
+# freecad-python3 provides the Python API without X11/display requirements
+RUN apt-get update && apt-get install -y \
+    freecad-python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create restricted user (UID 1000 matches host user in most setups)
+# Non-root execution limits damage from potential code injection
+RUN useradd -m -u 1000 -s /bin/bash runner
+
+# Set up working directory
+WORKDIR /app
+
+# Copy FreeCAD utility library (read-only mount in production)
+# This provides the geometry DSL functions for script execution
+COPY lib/ /app/lib/
+
+# Drop privileges before execution
+USER runner
+
+# Environment configuration
+# PYTHONPATH includes FreeCAD bindings and application library
+# MPLCONFIGDIR and FREECAD_USER_DATA use /tmp (only writable location)
+ENV PYTHONPATH=/usr/lib/freecad-python3/lib:/app
+ENV MPLCONFIGDIR=/tmp/matplotlib
+ENV FREECAD_USER_DATA=/tmp
+
+# Entrypoint: scripts are passed as file arguments
+# Example: docker run geometry-runner /workspace/gen.py
+ENTRYPOINT ["python3"]
