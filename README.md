@@ -1,74 +1,115 @@
-# Text-to-CAD
+# ⚙️ Text-to-.step  
+### Generate real parametric CAD models from natural language
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev/)
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.125-green)](https://fastapi.tiangolo.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Text-to-.step Demo](https://raw.githubusercontent.com/Sjs2332/Text-to-.step/main/text_to_step_generator_demo.gif)
 
-## The Why
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![React](https://img.shields.io/badge/React-19-61dafb)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.125-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-Engineers spend hours manually translating specifications into geometric primitives, managing parametric relationships, and iterating through GUI-based CAD tools. Existing solutions either produce stochastic meshes (not true CAD) or require extensive domain expertise to script parametric models.
+## What this is
 
-Text-to-CAD solves this by providing:
+**Text-to-.step** converts natural language into **true parametric CAD models** (STEP/STL).  
+Not meshes. Not approximations. Real B-Rep solids generated directly in FreeCAD.
 
-**Native B-Rep Generation**: Produces true parametric solids (STEP/STL) from natural language in 30-60 seconds using FreeCAD's native kernel execution.
+Type:  
+> "A 100mm x 60mm mounting bracket with 4 M5 holes"
 
-**Agentic Self-Correction**: 2-stage LLM pipeline extracts structured specs, then generates FreeCAD Python with automatic retry on geometry failures (~82% success rate on complex parts).
+Get:  
+A fully editable, dimensioned CAD part in under a minute.
 
-**Zero-Install Workflow**: Browser-based interface with real-time 3D visualization. No CAD software required on client machines.
+## Why it exists
 
-**Secure Execution**: User-generated code runs in Docker containers with network isolation, resource limits, and read-only filesystem.
+Most "text-to-3D" tools generate meshes.  
+Engineers need **parametric solids** they can actually modify and manufacture.
+
+Text-to-.step solves this by:
+- Generating native FreeCAD Python (not STL hallucinations)
+- Extracting dimensions as constraints
+- Retrying automatically on geometry failures
+
+## Core features
+
+**Native B-Rep generation**  
+Generates real parametric solids via FreeCAD kernel execution.
+
+**Two-stage LLM pipeline**  
+Prompt → structured spec → FreeCAD Python → geometry validation.
+
+**Self-correcting**  
+Automatically retries on failed geometry (~80% success on complex parts).
+
+**Parametric control**  
+Dimensions become editable constraints without regenerating.
+
+**Iterative design**  
+Conversation context allows incremental edits to existing parts.
+
+**Zero-install**  
+Runs fully in browser. No CAD software on client.
+
+**Secure execution**  
+All code runs in isolated Docker containers with no network access.
 
 ## Architecture
 
-Designed as a production-grade full-stack application for generating parametric CAD models.
+Built like a real production system, not a demo.
 
-**Frontend**: Next.js 16 App Router with Server Actions for type-safe API communication. React Three Fiber manages WebGL rendering declaratively with automatic resource cleanup.
+**Frontend**  
+Next.js 16 + React 19 + React Three Fiber for real-time 3D preview.
 
-**Backend**: FastAPI async server with 2-stage LLM pipeline. Dynamically injects few-shot examples based on part type (enclosure, bracket, gear) to improve code generation quality.
+**Backend**  
+FastAPI with Gemini-based two-stage generation pipeline.
 
-**Execution**: FreeCAD Python scripts execute natively in the B-Rep kernel (not CLI conversion) within Docker containers. Network isolation (`--network none`), resource limits (1 CPU, 512MB RAM), and read-only filesystem prevent code injection attacks.
+**Execution layer**  
+FreeCAD Python runs inside Docker:
+- no network
+- 1 CPU, 512MB RAM
+- read-only filesystem
+- non-root user
 
-**State Management**: Local React state with `useCallback` hooks for chat history and model data. No external state library—keeps bundle small and predictable.
+**Security model**  
+Ephemeral containers. No persistence. No server-side key storage.
 
-**Security**: Ephemeral containers with no network access, non-root execution (UID 1000), and API keys stored client-side only (localStorage).
-
-## Quick Start
+## Quick start
 
 ```bash
-# 1. Clone
-git clone <repo-url>
+# Clone
+git clone https://github.com/Sjs2332/Text-to-.step.git
 cd Text-to-.step
 
-# 2. Run
-bash start.sh     # macOS/Linux (or ./start.sh if executable)
+# Run
+bash start.sh      # macOS / Linux
 .\start.ps1       # Windows
 ```
 
-Then open `http://localhost:3000/app` and enter your [Google Gemini API key](https://aistudio.google.com/app/apikey).
+Open: http://localhost:3000/app  
+Paste your Google Gemini API key.
 
-## Features
+## Tech stack
 
-**Model-Aware Generation**: Dynamically switches few-shot examples based on part type (enclosure, bracket, gear, etc.) without requiring fine-tuning.
+**Core**  
+TypeScript, Node.js, Python 3.11
 
-**Parametric Control**: Extracts dimensions from prompts and exposes them as editable constraints without regenerating from scratch.
+**Frontend**  
+Next.js 16, React 19, Three.js, React Three Fiber
 
-**Iterative Design**: Maintains conversation context for incremental modifications. Previous geometry scripts can be passed for refinement.
+**Backend**  
+FastAPI, Google Gemini, FreeCAD
 
-**Mesh Validation**: Ensures watertightness, non-empty geometry, and positive volume before returning results.
+**Infra**  
+Docker (isolated execution)
 
-**Zero-Config**: No database, no auth, no migrations. Just run and generate.
+**UI**  
+TailwindCSS, Radix UI, Lucide
 
-## Tech Stack
+## License
 
-**Core**: TypeScript, Node.js, Python 3.11  
-**Frontend**: Next.js 16, React 19, Three.js, React Three Fiber  
-**Backend**: FastAPI, Google Gemini, FreeCAD  
-**UI**: TailwindCSS, Radix UI, Lucide Icons  
-**Execution**: Docker with network isolation  
-**Build**: Next.js Turbopack, Vite (for API dev)
+MIT
+
 
 ## License
 
