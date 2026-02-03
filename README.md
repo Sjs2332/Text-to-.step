@@ -40,7 +40,7 @@ Designed as a production-grade full-stack application for generating parametric 
 ```bash
 # 1. Clone
 git clone <repo-url>
-cd forge-generator
+cd Text-to-.step
 
 # 2. Run
 bash start.sh     # macOS/Linux (or ./start.sh if executable)
