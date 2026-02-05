@@ -1,9 +1,9 @@
 # ⚙️ Text-to-.step  
 ### Generate real parametric CAD models from natural language
 
- Demo
- 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/hgwEwmvW1Bk?si=BXjtrmEDQ9ReN7Dn" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+ [![Text-to-.step demo](https://img.youtube.com/vi/hgwEwmvW1Bk/maxresdefault.jpg)](https://www.youtube.com/watch?v=hgwEwmvW1Bk)
+
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
