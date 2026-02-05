@@ -137,7 +137,7 @@ interface ModelViewerProps {
   stlVersion?: number;
   fileName?: string;
   viewPreset?: ViewPreset;
-  onExport?: (format: 'stl' | 'step') => void;
+  onExport?: (format: 'stl' | 'step' | 'script') => void;
   isMeasureMode?: boolean;
   onMeasureModeChange?: (mode: boolean) => void;
 }
@@ -453,6 +453,20 @@ export function ModelViewer({
                   <span>STL File</span>
                   <span className="text-[10px] text-muted-foreground/80 font-normal">
                     Mesh (Printing)
+                  </span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onExport?.('script')}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium focus:bg-white/10 focus:text-white cursor-pointer transition-colors"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-yellow-500/20 text-yellow-400">
+                  <FileBox className="h-4 w-4" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span>Python Script</span>
+                  <span className="text-[10px] text-muted-foreground/80 font-normal">
+                    Source (Code)
                   </span>
                 </div>
               </DropdownMenuItem>

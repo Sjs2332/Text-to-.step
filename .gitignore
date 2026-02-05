@@ -78,6 +78,7 @@ htmlcov/
 # FreeCAD output files
 *.step
 *.stl
+!public/assets/render_3ea3f181-3b0d-48c8-804b-590aab5d0945.stl
 *.zip
 output.*
 render.*

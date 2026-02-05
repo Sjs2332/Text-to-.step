@@ -222,11 +222,11 @@ async def _run_docker_execution(
     cmd = [
         "docker", "run", "--rm",
         "--network", "none",  # No network access
-        "--cpus", "1.0",  # CPU limit
-        "--memory", "512m",  # Memory limit
+        "--cpus", "2.0",  # CPU limit (Increased for performance)
+        "--memory", "2048m",  # Memory limit (Increased to 2GB for complex CAD)
         "--user", "1000:1000",  # Non-root user
         "--read-only",  # Read-only root filesystem
-        "--tmpfs", "/tmp:rw,size=64m",  # Writable /tmp for FreeCAD
+        "--tmpfs", "/tmp:rw,size=512m",  # Writable /tmp (Increased for large temp files)
         "-v", f"{work_dir}:/workspace:rw",  # Workspace for I/O
         "-w", "/workspace",
         "-e", "STEP_OUTPUT=/workspace/output.step",

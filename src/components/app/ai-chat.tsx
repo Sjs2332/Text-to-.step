@@ -13,6 +13,7 @@ import {
   Box,
   Download,
   Key,
+  FileCode,
 } from 'lucide-react';
 import { generateModelAction } from '@/app/actions/cad-api';
 import { extractFilesFromZip, base64ToBlob } from '@/lib/file-utils';
@@ -154,26 +155,23 @@ function GenerationCard({
           return (
             <div
               key={step}
-              className={`flex items-center justify-between transition-all duration-500 ease-out transform ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-              }`}
+              className={`flex items-center justify-between transition-all duration-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+                }`}
             >
               <div className="flex items-center gap-3 text-sm">
                 <span
-                  className={`font-mono text-xs transition-colors duration-300 ${
-                    isCurrent ? 'text-primary font-bold' : 'text-muted-foreground/40'
-                  }`}
+                  className={`font-mono text-xs transition-colors duration-300 ${isCurrent ? 'text-primary font-bold' : 'text-muted-foreground/40'
+                    }`}
                 >
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 <span
-                  className={`transition-all duration-300 ${
-                    isCurrent
-                      ? 'text-foreground font-bold scale-[1.02] origin-left'
-                      : isCompleted
-                        ? 'text-muted-foreground/70'
-                        : 'text-muted-foreground'
-                  } ${isFinalizing && isCurrent ? 'animate-text-shimmer' : ''}`}
+                  className={`transition-all duration-300 ${isCurrent
+                    ? 'text-foreground font-bold scale-[1.02] origin-left'
+                    : isCompleted
+                      ? 'text-muted-foreground/70'
+                      : 'text-muted-foreground'
+                    } ${isFinalizing && isCurrent ? 'animate-text-shimmer' : ''}`}
                 >
                   {step}
                 </span>
@@ -200,7 +198,7 @@ interface CADChatProps {
   onThreadSelected: (data: { prompt: string; threadId?: string }) => void;
   currentThreadId: string | null;
   onThreadIdChange: (id: string | null) => void;
-  onExport?: (format: 'stl' | 'step') => void; // NEW: Export callback
+  onExport?: (format: 'stl' | 'step' | 'script') => void; // NEW: Export callback
 }
 
 // HistorySidebar moved to separate component
@@ -284,13 +282,13 @@ export function CADChat({
     const modelState =
       lastModelMessage?.fileData && zipBlob
         ? {
-            stlUrl: lastModelMessage.fileData.stlUrl,
-            stepUrl: lastModelMessage.fileData.stepUrl,
-            modelScript: lastModelMessage.fileData.modelScript,
-            zipBlob: zipBlob,
-            constraints: constraints,
-            prompt: messages.find((m) => m.role === 'user' && !m.isGenerationCard)?.content || '',
-          }
+          stlUrl: lastModelMessage.fileData.stlUrl,
+          stepUrl: lastModelMessage.fileData.stepUrl,
+          modelScript: lastModelMessage.fileData.modelScript,
+          zipBlob: zipBlob,
+          constraints: constraints,
+          prompt: messages.find((m) => m.role === 'user' && !m.isGenerationCard)?.content || '',
+        }
         : undefined;
 
     threadDataMapRef.current.set(threadId, {
@@ -493,7 +491,20 @@ export function CADChat({
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('Design Generation Error:', err);
-      setError('We encountered an issue generating your design. Please try again.');
+
+      // Check for API key related errors
+      if (
+        errorMessage.toLowerCase().includes('api key') ||
+        errorMessage.includes('401') ||
+        errorMessage.includes('403')
+      ) {
+        setError('Invalid or missing API key. Please check your settings.');
+        setGeminiApiKey('');
+        localStorage.removeItem('gemini_api_key');
+        setShowApiKeyModal(true);
+      } else {
+        setError('We encountered an issue generating your design. Please try again.');
+      }
       setMessages((prev) => prev.filter((m) => m.id !== cardId));
     } finally {
       setIsLoading(false);
@@ -730,11 +741,10 @@ export function CADChat({
                 className={`flex w-full gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`relative rounded-2xl px-5 py-3.5 shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${
-                    isUser
-                      ? 'bg-primary text-primary-foreground rounded-tr-none pr-10'
-                      : 'bg-muted/50 border border-border/50 text-foreground rounded-tl-none'
-                  }`}
+                  className={`relative rounded-2xl px-5 py-3.5 shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${isUser
+                    ? 'bg-primary text-primary-foreground rounded-tr-none pr-10'
+                    : 'bg-muted/50 border border-border/50 text-foreground rounded-tl-none'
+                    }`}
                 >
                   {formatMessage(content)}
 
@@ -781,6 +791,29 @@ export function CADChat({
                             </span>
                             <span className="text-[9px] text-muted-foreground font-mono uppercase tracking-wider">
                               .STL &bull; Triangles
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-1.5 rounded-full text-muted-foreground/70 group-hover:text-foreground group-hover:bg-muted transition-colors">
+                          <Download size={14} />
+                        </div>
+                      </button>
+
+                      {/* Python Script Attachment Card */}
+                      <button
+                        onClick={() => onExport('script')}
+                        className="flex items-center justify-between w-full p-2.5 rounded-md border border-border/50 bg-background/40 hover:bg-background hover:border-border transition-all group text-left shadow-sm"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded bg-yellow-500/10 text-yellow-600 border border-yellow-500/20">
+                            <FileCode size={14} />
+                          </div>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-xs font-semibold text-foreground">
+                              Generator Script
+                            </span>
+                            <span className="text-[9px] text-muted-foreground font-mono uppercase tracking-wider">
+                              .PY &bull; Source Code
                             </span>
                           </div>
                         </div>

@@ -86,7 +86,7 @@ export default function AppPage() {
   }, []);
 
   const handleExport = useCallback(
-    async (format: 'stl' | 'step') => {
+    async (format: 'stl' | 'step' | 'script') => {
       if (format === 'stl' && stlState?.path) {
         const link = document.createElement('a');
         link.href = stlState.path;
@@ -159,6 +159,21 @@ export default function AppPage() {
           } catch {
             setPreviewStatus('Extract Failed');
           }
+        }
+      } else if (format === 'script') {
+        if (modelScript) {
+          const blob = new Blob([modelScript], { type: 'text/x-python' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `model_script_${Date.now()}.py`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          setPreviewStatus('Exported Script');
+        } else {
+          alert('No source script available.');
         }
       } else {
         alert('No model data available to export.');
